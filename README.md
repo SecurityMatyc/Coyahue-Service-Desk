@@ -1,1 +1,1 @@
-# Sistema para la empresa: Coyahue
+# Sistema para la empresa Coyahue

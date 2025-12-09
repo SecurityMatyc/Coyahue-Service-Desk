@@ -1,0 +1,97 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">Mis tickets</h1>
+            <p class="page-subtitle mb-0">
+                Listado de todas las solicitudes que has creado en el sistema.
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'ticket_usuario_crear' %}" class="btn btn-primary btn-sm">
+                Crear nuevo ticket
+            </a>
+        </div>
+    </div>
+
+    <!-- Búsqueda por texto -->
+    <div class="mb-3">
+        <input type="text" id="buscarTicket" class="form-control" placeholder="🔍 Buscar...">
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            {% if tickets %}
+                <table class="table table-sm table-hover align-middle mb-0" id="tablaTickets">
+                    <thead class="table-light small text-muted">
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Creado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets %}
+                        <tr>
+                            <td>{{ t.id }}</td>
+                            <td>{{ t.titulo }}</td>
+                            <td>{{ t.categoria.nombre_categoria }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ t.estado.nombre_estado }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ t.prioridad.nombre_prioridad }}</span>
+                            </td>
+                            <td class="small">
+                                {{ t.fecha_creacion|date:"d-m-Y H:i" }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'ticket_usuario_detalle' t.id %}" class="btn btn-sm btn-outline-primary">
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="small text-muted mb-0">
+                    No tienes tickets registrados todavía.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Búsqueda universal en todas las columnas
+document.getElementById('buscarTicket').addEventListener('keyup', function() {
+    const filtro = this.value.toLowerCase();
+    const filas = document.querySelectorAll('#tablaTickets tbody tr');
+    
+    filas.forEach(fila => {
+        // Buscar en TODAS las columnas visibles
+        const textoCompleto = Array.from(fila.cells)
+            .map(cell => cell.textContent.toLowerCase())
+            .join(' ');
+        
+        if (textoCompleto.includes(filtro)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+});
+</script>
+
+{% endblock %}

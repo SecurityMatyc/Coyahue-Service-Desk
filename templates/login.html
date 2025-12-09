@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar - Coyahue Service Desk</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
+
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #111827 0, #020617 45%, #020617 100%);
+            color: #e5e7eb;
+        }
+
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .login-left {
+            flex: 1;
+            display: none;
+        }
+
+        .login-right {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .login-left {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 3rem;
+            }
+        }
+
+        .brand-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #6366f1, #22c55e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.45),
+                0 0 0 1px rgba(15, 23, 42, 0.6);
+        }
+
+        .form-control,
+        .form-control:focus {
+            background-color: #020617;
+            border-color: #1f2937;
+            color: #e5e7eb;
+        }
+
+        .form-control::placeholder {
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #22c55e);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+
+        .text-muted-soft {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <!-- LADO IZQUIERDO (mensaje conceptual) -->
+    <div class="login-left">
+        <div class="text-start" style="max-width: 460px;">
+            <div class="brand-badge mb-3">
+                C
+            </div>
+            <h1 class="fw-semibold mb-3">
+                Coyahue Service Desk
+            </h1>
+            <p class="text-muted-soft mb-4">
+                Plataforma centralizada de gestión de requerimientos y soporte TI.
+                Desde aquí puedes registrar, priorizar y resolver tickets, coordinando al equipo con
+                trazabilidad y métricas de desempeño.
+            </p>
+
+            <ul class="text-muted-soft mb-0">
+                <li>Diagnosticar carga y estado del servicio en tiempo real.</li>
+                <li>Intervenir en tickets críticos o estancados.</li>
+                <li>Optimizar la distribución del trabajo entre técnicos.</li>
+                <li>Medir tiempos de respuesta y cumplimiento de SLA.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- LADO DERECHO (formulario) -->
+    <div class="login-right">
+        <div class="login-card p-4 p-md-5">
+
+            <div class="mb-4 text-center">
+                <div class="brand-badge mx-auto mb-3">
+                    C
+                </div>
+                <h2 class="h4 mb-1">Iniciar sesión</h2>
+                <p class="text-muted-soft mb-0">
+                    Accede con tu correo corporativo para gestionar tickets y recursos.
+                </p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger py-2 small">
+                    Credenciales inválidas. Revisa tu correo y contraseña.
+                </div>
+            {% endif %}
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="email" class="form-label small text-uppercase text-muted">
+                        Correo electrónico
+                    </label>
+                    <input
+                        type="email"
+                        class="form-control form-control-sm"
+                        id="email"
+                        name="email"
+                        placeholder="tucorreo@empresa.cl"
+                        required
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label small text-uppercase text-muted">
+                        Contraseña
+                    </label>
+                    <input
+                        type="password"
+                        class="form-control form-control-sm"
+                        id="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-check small">
+                        <input class="form-check-input" type="checkbox" value="" id="remember">
+                        <label class="form-check-label text-muted-soft" for="remember">
+                            Mantener sesión iniciada
+                        </label>
+                    </div>
+                    <a href="{% url 'recuperar_contrasena' %}" class="small link-primary">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+
+                <div class="d-grid mb-2">
+                    <button type="submit" class="btn btn-primary btn-sm py-2">
+                        Acceder al panel
+                    </button>
+                </div>
+
+                <p class="text-center text-muted-soft mb-0 mt-2">
+                    Acceso restringido a usuarios registrados del área TI y usuarios autorizados.
+                </p>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

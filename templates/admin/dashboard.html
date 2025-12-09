@@ -1,0 +1,237 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">Dashboard de servicio</h1>
+            <p class="page-subtitle mb-0">
+                Visión general de la carga, el estado de los tickets y el desempeño del equipo.
+            </p>
+        </div>
+        <div class="small text-muted d-none d-md-block">
+            Actualizado al: {{ ahora|date:"d-m-Y H:i" }}
+        </div>
+    </div>
+
+    <!-- KPIs principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-1">Usuarios activos</div>
+                    <div class="h4 mb-0">{{ total_usuarios }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <a href="{% url 'tickets_listar' %}" class="text-decoration-none text-reset">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="small text-muted text-uppercase mb-1">Tickets totales</div>
+                        <div class="h4 mb-0">{{ total_tickets }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            {% if estado_abierto %}
+                <a href="{% url 'tickets_listar' %}?estado={{ estado_abierto.id }}" class="text-decoration-none text-reset">
+            {% endif %}
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-1">Tickets abiertos</div>
+                    <div class="h4 mb-0 text-danger">{{ tickets_abiertos }}</div>
+                </div>
+            </div>
+            {% if estado_abierto %}</a>{% endif %}
+        </div>
+
+        <div class="col-md-3">
+            {% if estado_en_progreso %}
+                <a href="{% url 'tickets_listar' %}?estado={{ estado_en_progreso.id }}" class="text-decoration-none text-reset">
+            {% endif %}
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-1">Tickets en progreso</div>
+                    <div class="h4 mb-0 text-warning">{{ tickets_en_progreso }}</div>
+                </div>
+            </div>
+            {% if estado_en_progreso %}</a>{% endif %}
+        </div>
+    </div>
+
+    <!-- Estado de tickets -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            {% if estado_resuelto %}
+                <a href="{% url 'tickets_listar' %}?estado={{ estado_resuelto.id }}" class="text-decoration-none text-reset">
+            {% endif %}
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-1">Resueltos</div>
+                    <div class="h4 mb-1 text-success">{{ tickets_resueltos }}</div>
+                    <p class="small text-muted mb-0">
+                        Tickets marcados como resueltos en el sistema.
+                    </p>
+                </div>
+            </div>
+            {% if estado_resuelto %}</a>{% endif %}
+        </div>
+
+        <div class="col-md-4">
+            {% if estado_cerrado %}
+                <a href="{% url 'tickets_listar' %}?estado={{ estado_cerrado.id }}" class="text-decoration-none text-reset">
+            {% endif %}
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-1">Cerrados</div>
+                    <div class="h4 mb-1">{{ tickets_cerrados }}</div>
+                    <p class="small text-muted mb-0">
+                        Tickets cerrados definitivamente.
+                    </p>
+                </div>
+            </div>
+            {% if estado_cerrado %}</a>{% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase mb-2">Reportes rápidos</div>
+                    <p class="small text-muted mb-3">
+                        Exporta la información de tickets para análisis en Excel o para compartir en PDF.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'reportes_tickets_excel' %}" class="btn btn-sm btn-outline-primary">
+                            Exportar a Excel
+                        </a>
+                        <a href="{% url 'reportes_tickets_pdf' %}" class="btn btn-sm btn-outline-secondary">
+                            Exportar a PDF
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="window.print()">
+                            Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribución por prioridad y área -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Tickets por prioridad</h6>
+                    {% if tickets_por_prioridad %}
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light small text-muted">
+                                <tr>
+                                    <th>Prioridad</th>
+                                    <th class="text-end">Tickets</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                {% for p in tickets_por_prioridad %}
+                                    <tr>
+                                        <td>{{ p.nombre_prioridad }}</td>
+                                        <td class="text-end">{{ p.total }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            Aún no hay tickets registrados por prioridad.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Tickets por área afectada</h6>
+                    {% if tickets_por_area %}
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light small text-muted">
+                                <tr>
+                                    <th>Área</th>
+                                    <th class="text-end">Tickets</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                {% for a in tickets_por_area %}
+                                    <tr>
+                                        <td>{{ a.nombre_area }}</td>
+                                        <td class="text-end">{{ a.total }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            Aún no hay tickets registrados por área.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos tickets -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h6 class="text-uppercase text-muted small mb-3">Últimos tickets registrados</h6>
+            {% if ultimos_tickets %}
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light small text-muted">
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Solicitante</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for t in ultimos_tickets %}
+                            <tr>
+                                <td>{{ t.id }}</td>
+                                <td>
+                                    <a href="{% url 'tickets_detalle' t.id %}" class="text-decoration-none">
+                                        {{ t.titulo }}
+                                    </a>
+                                </td>
+                                <td>{{ t.solicitante.email }}</td>
+                                <td>
+                                    {% if t.prioridad %}
+                                        <span class="badge bg-secondary">{{ t.prioridad.nombre_prioridad }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted">Sin prioridad</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ t.estado.nombre_estado }}</span>
+                                </td>
+                                <td>{{ t.fecha_creacion|date:"d-m-Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="small text-muted mb-0">
+                    Aún no hay tickets registrados.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

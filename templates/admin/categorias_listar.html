@@ -1,0 +1,46 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Categorías</h1>
+        <a class="btn btn-primary" href="{% url 'categorias_crear' %}">Crear Categoría</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Activa</th>
+                <th style="width: 180px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for c in categorias %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.nombre_categoria }}</td>
+                <td>{{ c.descripcion }}</td>
+                <td>
+                    {% if c.activo %}
+                        <span class="badge bg-success">Sí</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'categorias_editar' c.id %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'categorias_eliminar' c.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+{% endblock %}

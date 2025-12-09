@@ -1,0 +1,224 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1 class="page-title mb-1">Gestión de tickets</h1>
+            <p class="page-subtitle mb-0">
+                Visualiza, filtra y prioriza los tickets de la organización. Desde aquí puedes acceder al detalle
+                para reasignar, cambiar estado o intervenir casos críticos.
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            {% comment %}
+            Si quisieras que el admin pueda crear tickets manualmente, podrías habilitar esto:
+            <a href="{% url 'ticket_usuario_crear' %}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Crear ticket
+            </a>
+            {% endcomment %}
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body small">
+            <form method="get" class="row g-2 align-items-end" id="filtrosForm">
+
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label mb-1">Estado</label>
+                    <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        {% for e in estados %}
+                            <option value="{{ e.id }}"
+                                {% if request.GET.estado|default_if_none:'' == e.id|stringformat:'s' %}selected{% endif %}>
+                                {{ e.nombre_estado }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label mb-1">Prioridad</label>
+                    <select name="prioridad" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+                        {% for p in prioridades %}
+                            <option value="{{ p.id }}"
+                                {% if request.GET.prioridad|default_if_none:'' == p.id|stringformat:'s' %}selected{% endif %}>
+                                {{ p.nombre_prioridad }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label mb-1">Técnico asignado</label>
+                    <select name="tecnico" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        {% for t in tecnicos %}
+                            <option value="{{ t.id }}"
+                                {% if request.GET.tecnico|default_if_none:'' == t.id|stringformat:'s' %}selected{% endif %}>
+                                {{ t.usuario.email }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label mb-1">Área afectada</label>
+                    <select name="area" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+                        {% for a in areas %}
+                            <option value="{{ a.id }}"
+                                {% if request.GET.area|default_if_none:'' == a.id|stringformat:'s' %}selected{% endif %}>
+                                {{ a.nombre_area }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Búsqueda por texto -->
+    <div class="mb-3">
+        <input type="text" id="buscarTicket" class="form-control form-control-sm" placeholder="🔍 Buscar...">
+    </div>
+
+    <!-- Tabla de tickets -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle mb-0" id="tablaTickets">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">#</th>
+                            <th>Título</th>
+                            <th>Solicitante</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Área</th>
+                            <th>Técnico</th>
+                            <th>Creado</th>
+                            <th style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tickets %}
+                            {% for t in tickets %}
+                                <tr>
+                                    <td class="text-muted">#{{ t.id }}</td>
+
+                                    <td>
+                                        <div class="fw-semibold">{{ t.titulo }}</div>
+                                        <div class="text-muted small text-truncate" style="max-width: 260px;">
+                                            {{ t.descripcion }}
+                                        </div>
+                                    </td>
+
+                                    <td class="small">
+                                        {{ t.solicitante.email }}
+                                    </td>
+
+                                    <td>
+                                        {% if t.estado.nombre_estado == "Abierto" %}
+                                            <span class="badge bg-secondary">{{ t.estado.nombre_estado }}</span>
+                                        {% elif t.estado.nombre_estado == "En Progreso" or t.estado.nombre_estado == "En progreso" %}
+                                            <span class="badge bg-info text-dark">{{ t.estado.nombre_estado }}</span>
+                                        {% elif t.estado.nombre_estado == "Resuelto" %}
+                                            <span class="badge bg-success">{{ t.estado.nombre_estado }}</span>
+                                        {% elif t.estado.nombre_estado == "Cerrado" %}
+                                            <span class="badge bg-dark">{{ t.estado.nombre_estado }}</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ t.estado.nombre_estado }}</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if t.prioridad %}
+                                            {% if t.prioridad.nombre_prioridad == "Crítica" %}
+                                                <span class="badge bg-danger">{{ t.prioridad.nombre_prioridad }}</span>
+                                            {% elif t.prioridad.nombre_prioridad == "Alta" %}
+                                                <span class="badge bg-warning text-dark">{{ t.prioridad.nombre_prioridad }}</span>
+                                            {% elif t.prioridad.nombre_prioridad == "Media" %}
+                                                <span class="badge bg-primary">{{ t.prioridad.nombre_prioridad }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ t.prioridad.nombre_prioridad }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-light text-muted">Sin prioridad</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="small">
+                                        {% if t.area_afectada %}
+                                            {{ t.area_afectada.nombre_area }}
+                                        {% else %}
+                                            <span class="text-muted">N/D</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="small">
+                                        {% with asign=t.asignaciones.all|first %}
+                                            {% if asign %}
+                                                {{ asign.tecnico_asignado.usuario.email }}
+                                            {% else %}
+                                                <span class="text-muted">Sin asignar</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+
+                                    <td class="small text-muted">
+                                        {{ t.fecha_creacion|date:"d-m-Y H:i" }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        <a href="{% url 'tickets_detalle' t.id %}"
+                                           class="btn btn-outline-primary btn-sm">
+                                            Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted small py-4">
+                                    No se encontraron tickets con los filtros aplicados.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Búsqueda universal en todas las columnas
+document.getElementById('buscarTicket').addEventListener('keyup', function() {
+    const filtro = this.value.toLowerCase();
+    const filas = document.querySelectorAll('#tablaTickets tbody tr');
+    
+    filas.forEach(fila => {
+        // Saltar fila de "no hay resultados"
+        if (fila.cells.length < 9) return;
+        
+        // Buscar en TODAS las columnas visibles
+        const textoCompleto = Array.from(fila.cells)
+            .map(cell => cell.textContent.toLowerCase())
+            .join(' ');
+        
+        if (textoCompleto.includes(filtro)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+});
+</script>
+
+{% endblock %}

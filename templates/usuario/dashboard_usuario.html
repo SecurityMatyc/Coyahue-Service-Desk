@@ -1,0 +1,118 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">Dashboard de Solicitudes</h1>
+            <p class="page-subtitle mb-0">
+                Aquí puedes ver el estado general de tus solicitudes de soporte.
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'ticket_usuario_crear' %}" class="btn btn-primary btn-sm">
+                Crear nuevo ticket
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small mb-1">Total de tickets</div>
+                    <h3 class="fw-bold mb-0">{{ total }}</h3>
+                    <p class="small text-muted mb-0">
+                        Todas las solicitudes que has registrado.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small mb-1">Abiertos</div>
+                    <h3 class="fw-bold mb-0 text-warning">{{ abiertos }}</h3>
+                    <p class="small text-muted mb-0">
+                        Aún en espera de atención o en primera revisión.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small mb-1">En progreso</div>
+                    <h3 class="fw-bold mb-0 text-primary">{{ en_progreso }}</h3>
+                    <p class="small text-muted mb-0">
+                        El equipo TI está trabajando en estos casos.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small mb-1">Resueltos</div>
+                    <h3 class="fw-bold mb-0 text-success">{{ resueltos }}</h3>
+                    <p class="small text-muted mb-0">
+                        Solicitudes que ya han sido solucionadas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h6 class="text-uppercase text-muted small mb-3">Últimos tickets</h6>
+
+            {% if ultimos %}
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light small text-muted">
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Creado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in ultimos %}
+                        <tr>
+                            <td>{{ t.id }}</td>
+                            <td>{{ t.titulo }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ t.estado.nombre_estado }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ t.prioridad.nombre_prioridad }}</span>
+                            </td>
+                            <td class="small">
+                                {{ t.fecha_creacion|date:"d-m-Y H:i" }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'ticket_usuario_detalle' t.id %}" class="btn btn-sm btn-outline-primary">
+                                    Ver detalle
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="small text-muted mb-0">
+                    Aún no has creado solicitudes. Comienza creando tu primer ticket de soporte.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

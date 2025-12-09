@@ -1,0 +1,573 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="page-title mb-1">Reportes & KPIs del Servicio</h1>
+        <p class="page-subtitle mb-0">
+            Resumen ejecutivo, táctico y estratégico para la toma de decisiones.
+        </p>
+    </div>
+</div>
+
+{# ALERTAS GLOBALES #}
+{% if sla_rojo or backlog_rojo or criticos_rojo or backlog_edad_rojo %}
+    <div class="mb-3">
+        {% if sla_rojo %}
+            <div class="alert alert-danger small mb-2">
+                <strong>SLA en riesgo:</strong> el porcentaje de cumplimiento está por debajo del umbral objetivo.
+            </div>
+        {% endif %}
+        {% if backlog_rojo %}
+            <div class="alert alert-warning small mb-2">
+                <strong>Backlog elevado:</strong> número de tickets pendientes supera el umbral definido.
+            </div>
+        {% endif %}
+        {% if criticos_rojo %}
+            <div class="alert alert-danger small mb-2">
+                <strong>Tickets críticos pendientes:</strong> existen incidentes de prioridad crítica sin resolver.
+            </div>
+        {% endif %}
+        {% if backlog_edad_rojo %}
+            <div class="alert alert-warning small mb-0">
+                <strong>Antigüedad del backlog:</strong> el tiempo promedio de espera supera las 48 horas.
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<hr class="mb-4">
+
+{# ====================== VISTA EJECUTIVA (DIARIA) ====================== #}
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">Vista Ejecutiva (Diaria)</h4>
+        <span class="badge bg-light text-secondary border">
+            Fotografía rápida del estado actual
+        </span>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <!-- Backlog total -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Backlog total</h6>
+                    <div class="d-flex align-items-baseline justify-content-between">
+                        <h3 class="mb-0">{{ backlog_total }}</h3>
+                        <span class="small">
+                            vs ayer:
+                            {% if backlog_vs_ayer > 0 %}
+                                <span class="text-danger fw-semibold">+{{ backlog_vs_ayer }}</span>
+                            {% elif backlog_vs_ayer < 0 %}
+                                <span class="text-success fw-semibold">{{ backlog_vs_ayer }}</span>
+                            {% else %}
+                                <span class="text-muted">=</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        Tickets actualmente abiertos o en curso.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edad del backlog -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Edad del backlog</h6>
+                    {% if backlog_edad_promedio_horas %}
+                        <p class="mb-1">
+                            Promedio:<br>
+                            <strong>{{ backlog_edad_promedio_horas }} h</strong>
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            Máximo: {{ backlog_edad_max_dias }} días aprox.
+                        </p>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            No hay suficientes tickets abiertos para calcular edad.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Throughput 7 días -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Throughput 7 días</h6>
+                    <h3 class="mb-0">{{ throughput_7 }}</h3>
+                    <p class="small text-muted mt-2 mb-0">
+                        Tickets resueltos o cerrados en los últimos 7 días.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLA -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Cumplimiento SLA</h6>
+                    {% if sla_porcentaje %}
+                        <h3 class="mb-0">
+                            {{ sla_porcentaje }}%
+                        </h3>
+                        <p class="small text-muted mt-2 mb-0">
+                            Tickets cerrados dentro del tiempo objetivo.
+                        </p>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            Aún no hay suficientes tickets con SLA definido.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <!-- MTTR -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">MTTR últimos 30 días</h6>
+                    {% if mttr_horas_30 %}
+                        <h3 class="mb-0">{{ mttr_horas_30 }} h</h3>
+                        <p class="small text-muted mt-2 mb-0">
+                            Tiempo promedio desde creación hasta cierre.
+                        </p>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            No hay suficientes tickets cerrados para calcular MTTR.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Críticos pendientes -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Críticos pendientes</h6>
+                    <h3 class="mb-0 text-danger">{{ criticos_pendientes }}</h3>
+                    <p class="small text-muted mt-2 mb-0">
+                        Tickets de prioridad <strong>Crítica</strong> aún sin resolución.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reaperturas -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">Reaperturas</h6>
+                    <h3 class="mb-0">{{ reaperturas }}</h3>
+                    <p class="small text-muted mt-2 mb-0">
+                        Tickets que regresaron a estado abierto tras estar resueltos/cerrados.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSAT (Satisfacción) -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-1">CSAT (Satisfacción)</h6>
+                    {% if csat_promedio %}
+                        <h2 class="mb-1 text-warning">
+                            <i class="bi bi-star-fill"></i> {{ csat_promedio }}/5
+                        </h2>
+                        <p class="small text-muted mb-1">
+                            <strong>{{ csat_porcentaje }}%</strong> de satisfacción
+                        </p>
+                        <p class="small text-muted mb-1">
+                            <i class="bi bi-check-circle-fill text-success"></i> 
+                            <strong>{{ csat_resueltos_porcentaje }}%</strong> resueltos
+                        </p>
+                        <p class="small text-muted mb-0">
+                            {{ csat_total_calificaciones }} calificación{{ csat_total_calificaciones|pluralize:"es" }}
+                        </p>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            <i class="bi bi-info-circle"></i> Aún no hay calificaciones de usuarios
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ====================== VISTA TÁCTICA (SEMANAL) ====================== #}
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">Vista Táctica (Semanal)</h4>
+        <span class="badge bg-light text-secondary border">
+            Flujo del trabajo, balanceo y calidad
+        </span>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <!-- CFD -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-2">
+                        Cumulative Flow Diagram (últimos 7 días)
+                    </h6>
+                    <canvas id="cfdChart" height="140"></canvas>
+                    <p class="small text-muted mt-2 mb-0">
+                        Permite visualizar el flujo de tickets en cada estado y detectar cuellos de botella.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Burndown -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-2">
+                        Burndown de backlog (últimos 7 días)
+                    </h6>
+                    <canvas id="burndownChart" height="140"></canvas>
+                    <p class="small text-muted mt-2 mb-0">
+                        Evolución del backlog diario. Una curva descendente indica un sistema bajo control.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <!-- Distribución de carga del equipo -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted text-uppercase small mb-0">
+                            Distribución de carga del equipo
+                        </h6>
+                        <span class="small text-muted">
+                            Tickets activos vs resueltos por técnico
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Técnico</th>
+                                    <th scope="col" class="text-center">Tickets activos</th>
+                                    <th scope="col" class="text-center">Tickets resueltos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in carga_tecnicos %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold small">
+                                            {{ t.usuario.first_name|default:t.usuario.email }}
+                                        </span>
+                                        <br>
+                                        <span class="small text-muted">
+                                            {{ t.usuario.email }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning-subtle text-dark">
+                                            {{ t.activos }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success-subtle text-success">
+                                            {{ t.resueltos }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center small text-muted">
+                                        No hay técnicos registrados todavía.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Top categorías -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted text-uppercase small mb-0">
+                            Top 5 categorías (últimos 30 días)
+                        </h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th class="text-center" style="width: 100px;">Tickets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in top_categorias %}
+                                <tr>
+                                    <td>{{ c.nombre_categoria }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            {{ c.total }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center small text-muted">
+                                        Aún no hay datos suficientes por categoría.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ====================== VISTA ESTRATÉGICA (MENSUAL) ====================== #}
+<section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">Vista Estratégica (Mensual)</h4>
+        <span class="badge bg-light text-secondary border">
+            Tendencias, capacidad y planificación
+        </span>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <!-- Tendencias de volumen -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-2">
+                        Tendencias de volumen de tickets (últimos 6 meses)
+                    </h6>
+                    <canvas id="tendenciasChart" height="140"></canvas>
+                    <p class="small text-muted mt-2 mb-0">
+                        Útil para anticipar temporadas altas/bajas y ajustar la capacidad del equipo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pronóstico -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="text-muted text-uppercase small mb-2">
+                            Pronóstico próximo mes
+                        </h6>
+                        {% if forecast %}
+                            <p class="mb-1">
+                                Se proyectan aproximadamente:
+                            </p>
+                            <h2 class="mb-0">
+                                {{ forecast }}
+                                <span class="fs-6 text-muted">tickets</span>
+                            </h2>
+                            <p class="small text-muted mt-2 mb-0">
+                                Calculado como el promedio de los últimos 3 meses registrados.
+                            </p>
+                        {% else %}
+                            <p class="small text-muted mb-0">
+                                Aún no hay suficientes meses con datos para estimar un pronóstico.
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div>
+                        <h6 class="text-muted text-uppercase small mb-2">
+                            Exportación de datos
+                        </h6>
+                        <p class="small text-muted mb-2">
+                            Para análisis avanzado o integración con BI:
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'reportes_tickets_excel' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-file-excel me-1"></i> Exportar tickets (CSV/Excel)
+                            </a>
+                            <a href="{% url 'reportes_tickets_pdf' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fa-solid fa-file-pdf me-1"></i> Reporte detallado (PDF)
+                            </a>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">
+                            La automatización (envío programado) se puede implementar vía tareas periódicas
+                            (cron / Celery) sobre estos mismos endpoints.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ====================== SCRIPTS DE GRÁFICOS ====================== #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // ---------------- CFD DATA ----------------
+    const cfdRaw = [
+        {% for p in cfd %}
+        {
+            dia: "{{ p.dia|date:'Y-m-d' }}",
+            estado: "{{ p.estado__nombre_estado }}",
+            total: {{ p.total }}
+        },
+        {% endfor %}
+    ];
+
+    const cfdDaysSet = new Set();
+    const estadosSet = new Set();
+    cfdRaw.forEach(p => {
+        cfdDaysSet.add(p.dia);
+        estadosSet.add(p.estado);
+    });
+
+    const cfdLabels = Array.from(cfdDaysSet).sort();
+    const estadosList = Array.from(estadosSet);
+
+    const cfdDataByEstado = {};
+    estadosList.forEach(e => {
+        cfdDataByEstado[e] = cfdLabels.map(d => {
+            const match = cfdRaw.find(p => p.dia === d && p.estado === e);
+            return match ? match.total : 0;
+        });
+    });
+
+    // ---------------- BURNDOWN DATA ----------------
+    const burndownRaw = [
+        {% for p in burndown %}
+        {
+            dia: "{{ p.dia|date:'Y-m-d' }}",
+            backlog: {{ p.backlog }}
+        },
+        {% endfor %}
+    ];
+    const burndownLabels = burndownRaw.map(p => p.dia);
+    const burndownValues = burndownRaw.map(p => p.backlog);
+
+    // ---------------- TENDENCIAS DATA ----------------
+    const tendenciasRaw = [
+        {% for t in tendencias %}
+        {
+            mes: "{{ t.mes|date:'Y-m' }}",
+            label: "{{ t.mes|date:'M Y' }}",
+            total: {{ t.total }}
+        },
+        {% endfor %}
+    ];
+    const tendenciasLabels = tendenciasRaw.map(p => p.label);
+    const tendenciasValues = tendenciasRaw.map(p => p.total);
+
+    // ---------------- CFD CHART ----------------
+    const cfdCtx = document.getElementById('cfdChart');
+    if (cfdCtx && cfdLabels.length > 0) {
+        new Chart(cfdCtx, {
+            type: 'line',
+            data: {
+                labels: cfdLabels,
+                datasets: estadosList.map((estado, idx) => ({
+                    label: estado,
+                    data: cfdDataByEstado[estado],
+                    tension: 0.3,
+                    fill: true,
+                    borderWidth: 1
+                }))
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Día' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Tickets' } }
+                }
+            }
+        });
+    }
+
+    // ---------------- BURNDOWN CHART ----------------
+    const bdCtx = document.getElementById('burndownChart');
+    if (bdCtx && burndownLabels.length > 0) {
+        new Chart(bdCtx, {
+            type: 'line',
+            data: {
+                labels: burndownLabels,
+                datasets: [{
+                    label: 'Backlog',
+                    data: burndownValues,
+                    borderWidth: 2,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Día' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Tickets pendientes' } }
+                }
+            }
+        });
+    }
+
+    // ---------------- TENDENCIAS CHART ----------------
+    const tendCtx = document.getElementById('tendenciasChart');
+    if (tendCtx && tendenciasLabels.length > 0) {
+        new Chart(tendCtx, {
+            type: 'bar',
+            data: {
+                labels: tendenciasLabels,
+                datasets: [{
+                    label: 'Tickets por mes',
+                    data: tendenciasValues,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Mes' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Total tickets' } }
+                }
+            }
+        });
+    }
+</script>
+
+{% endblock %}

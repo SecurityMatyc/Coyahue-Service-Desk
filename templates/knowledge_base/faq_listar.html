@@ -1,0 +1,143 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="page-title mb-1">📚 Preguntas Frecuentes</h1>
+        <p class="page-subtitle mb-0">
+            Encuentra soluciones rápidas a problemas comunes antes de crear un ticket.
+        </p>
+    </div>
+</div>
+
+<!-- Buscador y filtros -->
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="form-control" 
+                    placeholder="🔍 Buscar por palabra clave..." 
+                    value="{{ query }}"
+                />
+            </div>
+            <div class="col-md-4">
+                <select name="categoria" class="form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:'s' %}selected{% endif %}>
+                            {{ cat.nombre_categoria }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fa-solid fa-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Artículos destacados -->
+{% if destacados and not query %}
+<div class="mb-4">
+    <h5 class="mb-3">⭐ Artículos más útiles</h5>
+    <div class="row g-3">
+        {% for art in destacados %}
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-2">
+                        <a href="{% url 'faq_detalle' art.id %}" class="text-decoration-none">
+                            {{ art.titulo }}
+                        </a>
+                    </h6>
+                    <p class="card-text small text-muted mb-2">
+                        {{ art.problema|truncatewords:20 }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fa-solid fa-eye"></i> {{ art.vistas }} vistas
+                        </small>
+                        {% if art.total_votos > 0 %}
+                        <small class="text-success">
+                            <i class="fa-solid fa-thumbs-up"></i> {{ art.porcentaje_utilidad }}% útil
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Lista de artículos -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            {% if query %}
+                Resultados para "{{ query }}"
+            {% else %}
+                Todos los artículos
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if articulos %}
+        <div class="list-group list-group-flush">
+            {% for art in articulos %}
+            <a href="{% url 'faq_detalle' art.id %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">{{ art.titulo }}</h6>
+                        <p class="mb-1 small text-muted">{{ art.problema|truncatewords:25 }}</p>
+                        <div class="d-flex gap-3 mt-2">
+                            {% if art.categoria %}
+                            <small class="text-muted">
+                                <i class="fa-solid fa-folder"></i> {{ art.categoria.nombre_categoria }}
+                            </small>
+                            {% endif %}
+                            <small class="text-muted">
+                                <i class="fa-solid fa-eye"></i> {{ art.vistas }} vistas
+                            </small>
+                            {% if art.total_votos > 0 %}
+                            <small class="text-success">
+                                <i class="fa-solid fa-thumbs-up"></i> {{ art.util_si }} / {{ art.total_votos }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fa-solid fa-chevron-right text-muted"></i>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="fa-solid fa-search fa-3x mb-3"></i>
+            <p class="mb-0">No se encontraron artículos.</p>
+            {% if query %}
+            <p class="small">Intenta con otras palabras clave.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Botón para crear ticket si no encuentra solución -->
+<div class="mt-4 text-center">
+    <p class="text-muted mb-2">¿No encontraste lo que buscabas?</p>
+    <a href="{% url 'ticket_usuario_crear' %}" class="btn btn-outline-primary">
+        <i class="fa-solid fa-ticket"></i> Crear un ticket de soporte
+    </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <h1 class="mb-4">Editar Usuario</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Correo</label>
+            <input type="email" class="form-control" name="email" value="{{ usuario.email }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" name="first_name" value="{{ usuario.first_name }}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" name="last_name" value="{{ usuario.last_name }}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Rol</label>
+            <select name="rol" class="form-control">
+                {% for r in roles %}
+                <option value="{{ r.id }}" {% if usuario.rol.id == r.id %}selected{% endif %}>
+                    {{ r.nombre_rol }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <hr class="my-4">
+        
+        <h5 class="mb-3">
+            <i class="fas fa-key"></i> Cambiar contraseña (opcional)
+        </h5>
+        <p class="text-muted small mb-3">
+            Dejar en blanco para mantener la contraseña actual
+        </p>
+
+        <div class="mb-3">
+            <label class="form-label">Nueva contraseña</label>
+            <input 
+                type="password" 
+                class="form-control" 
+                name="nueva_password" 
+                placeholder="Dejar vacío para no cambiar"
+                minlength="8"
+            >
+            <small class="form-text text-muted">
+                Mínimo 8 caracteres
+            </small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{% url 'usuarios_listar' %}" class="btn btn-secondary">Cancelar</a>
+
+    </form>
+
+</div>
+{% endblock %}

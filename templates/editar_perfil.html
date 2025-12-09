@@ -1,0 +1,123 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <h1 class="h3 mb-4">
+                <i class="bi bi-person-circle"></i> Editar Perfil
+            </h1>
+
+            <!-- AVATAR -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-emoji-smile"></i> Foto de Perfil
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Selecciona un ícono para personalizar tu perfil. Solo tú lo verás en la barra de navegación.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ícono actual: <span style="font-size: 2rem;">{{ user.avatar }}</span></label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Selecciona un nuevo ícono:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for valor, etiqueta in avatares %}
+                                    <input type="radio" class="btn-check" name="avatar" id="avatar_{{ forloop.counter }}" value="{{ valor }}" {% if user.avatar == valor %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="avatar_{{ forloop.counter }}" style="font-size: 2rem; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                                        {{ valor }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar Avatar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN PERSONAL (Solo lectura) -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-info-circle"></i> Información Personal
+                    </h5>
+
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold text-muted">Email:</div>
+                        <div class="col-8">{{ user.email }}</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold text-muted">Nombre:</div>
+                        <div class="col-8">{{ user.first_name }} {{ user.last_name }}</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold text-muted">Rol:</div>
+                        <div class="col-8">
+                            <span class="badge bg-secondary">{{ user.rol.nombre_rol }}</span>
+                        </div>
+                    </div>
+
+                    {% if user.rol.nombre_rol == "ADMIN" %}
+                        <p class="text-primary small mb-0 mt-3">
+                            <i class="bi bi-gear-fill"></i> Para editar sus datos personales, vaya a <strong>Gestión de usuarios</strong> y busque su usuario.
+                        </p>
+                    {% else %}
+                        <p class="text-muted small mb-0 mt-3">
+                            <i class="bi bi-lock-fill"></i> Estos datos no son editables. Contacta al administrador si necesitas cambiarlos.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CAMBIAR CONTRASEÑA -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-shield-lock"></i> Cambiar Contraseña
+                    </h5>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="password_actual" class="form-label">Contraseña actual</label>
+                            <input type="password" name="password_actual" id="password_actual" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_nueva" class="form-label">Nueva contraseña</label>
+                            <input type="password" name="password_nueva" id="password_nueva" class="form-control" minlength="8" required>
+                            <div class="form-text">Mínimo 8 caracteres</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_confirmar" class="form-label">Confirmar nueva contraseña</label>
+                            <input type="password" name="password_confirmar" id="password_confirmar" class="form-control" minlength="8" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-key"></i> Actualizar Contraseña
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <a href="{% if user.rol.nombre_rol == 'ADMIN' %}{% url 'dashboard_admin' %}{% elif user.rol.nombre_rol == 'TECNICO' %}{% url 'dashboard_tecnico' %}{% else %}{% url 'dashboard_usuario' %}{% endif %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Dashboard
+            </a>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

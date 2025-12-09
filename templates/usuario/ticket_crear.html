@@ -1,0 +1,85 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="page-title mb-2">Crear nuevo ticket</h1>
+            <p class="page-subtitle">
+                Describe tu problema o requerimiento. El equipo de TI utilizará esta información
+                para priorizar y gestionar tu solicitud.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Título del ticket</label>
+                            <input type="text" name="titulo" class="form-control" required
+                                   placeholder="Ej.: No puedo acceder al sistema de RRHH">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea name="descripcion" rows="5" class="form-control" required
+                                      placeholder="Describe el problema, cuándo comenzó, pasos realizados, etc."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Área afectada</label>
+                            <select name="area_afectada" class="form-select" required>
+                                <option value="">Selecciona un área...</option>
+                                {% for area in areas %}
+                                    <option value="{{ area.id }}">{{ area.nombre_area }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Adjuntar archivo (opcional)</label>
+                            <input type="file" name="archivo" class="form-control">
+                            <div class="form-text">
+                                Puedes adjuntar capturas de pantalla, documentos u otros archivos relevantes.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'tickets_usuario_listar' %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Enviar ticket
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body small">
+                    <h6 class="fw-semibold mb-2">Consejos para una mejor atención</h6>
+                    <ul class="mb-0 ps-3">
+                        <li>Indica el sistema, equipo o aplicación afectada.</li>
+                        <li>Señala si el problema afecta a más personas o solo a ti.</li>
+                        <li>Adjunta evidencias cuando sea posible.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

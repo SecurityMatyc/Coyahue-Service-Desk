@@ -1,0 +1,173 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="page-title mb-1">Tickets de soporte</h1>
+        <p class="page-subtitle mb-0">
+            Revisa y gestiona los tickets asignados y consulta el estado general de la operación.
+        </p>
+    </div>
+
+    <div class="text-end">
+        <div class="small text-muted">Técnico:</div>
+        <div class="fw-semibold">
+            {{ tecnico.usuario.first_name }} {{ tecnico.usuario.last_name }}
+        </div>
+        <div class="small text-muted">
+            {{ tecnico.usuario.email }}
+        </div>
+    </div>
+</div>
+
+<!-- Toggle: Mis tickets / Todos -->
+<div class="d-flex justify-content-between flex-wrap align-items-center mb-3">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Ámbito de tickets">
+        <a href="{% url 'tickets_tecnico_listar' %}?scope=mios"
+           class="btn btn-outline-primary {% if scope != 'todos' %}active{% endif %}">
+            Mis tickets
+        </a>
+        <a href="{% url 'tickets_tecnico_listar' %}?scope=todos"
+           class="btn btn-outline-primary {% if scope == 'todos' %}active{% endif %}">
+            Todos los tickets
+        </a>
+    </div>
+
+    <!-- Filtros rápidos -->
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+        {# mantener el scope actual al filtrar #}
+        <input type="hidden" name="scope" value="{{ scope }}"/>
+
+        <select name="estado" class="form-select form-select-sm" style="width:auto; min-width: 160px;">
+            <option value="">Estado (todos)</option>
+            {% for e in estados %}
+                <option value="{{ e.id }}"
+                    {% if request.GET.estado|default_if_none:'' == e.id|stringformat:'s' %}selected{% endif %}>
+                    {{ e.nombre_estado }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="prioridad" class="form-select form-select-sm" style="width:auto; min-width: 160px;">
+            <option value="">Prioridad (todas)</option>
+            {% for p in prioridades %}
+                <option value="{{ p.id }}"
+                    {% if request.GET.prioridad|default_if_none:'' == p.id|stringformat:'s' %}selected{% endif %}>
+                    {{ p.nombre_prioridad }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <input type="text"
+               name="q"
+               value="{{ request.GET.q }}"
+               class="form-control form-control-sm"
+               placeholder="Buscar por título o descripción..."
+               style="width: 220px;"/>
+
+        <button type="submit" class="btn btn-sm btn-primary">
+            <i class="fa-solid fa-filter me-1"></i> Filtrar
+        </button>
+    </form>
+</div>
+
+<!-- Tabla de tickets -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+        <tr>
+            <th style="width: 70px;">ID</th>
+            <th>Título</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Área afectada</th>
+            <th>Asignado a</th>   <!-- NUEVO -->
+            <th>Solicitante</th>
+            <th>Creado</th>
+            <th style="width: 90px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if tickets %}
+            {% for t in tickets %}
+                <tr>
+                    <td>#{{ t.id }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ t.titulo }}</div>
+                        {% if t.categoria %}
+                            <div class="small text-muted">
+                                {{ t.categoria.nombre_categoria }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill 
+                            {% if t.estado.nombre_estado == 'Abierto' %}
+                                bg-danger-subtle text-danger
+                            {% elif t.estado.nombre_estado == 'En Progreso' %}
+                                bg-warning-subtle text-warning
+                            {% elif t.estado.nombre_estado == 'Resuelto' %}
+                                bg-success-subtle text-success
+                            {% else %}
+                                bg-secondary-subtle text-secondary
+                            {% endif %}
+                        ">
+                            {{ t.estado.nombre_estado }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill
+                            {% if t.prioridad and t.prioridad.nombre_prioridad == 'Crítica' %}
+                                bg-danger
+                            {% elif t.prioridad and t.prioridad.nombre_prioridad == 'Alta' %}
+                                bg-danger-subtle text-danger
+                            {% elif t.prioridad and t.prioridad.nombre_prioridad == 'Media' %}
+                                bg-warning-subtle text-warning
+                            {% else %}
+                                bg-secondary-subtle text-secondary
+                            {% endif %}
+                        ">
+                            {{ t.prioridad.nombre_prioridad|default:'N/A' }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ t.area_afectada.nombre_area|default:'-' }}
+                    </td>
+                    <td>
+                        {% if t.asignacion_activa %}
+                            {{ t.asignacion_activa.tecnico_asignado.usuario.email }}
+                        {% else %}
+                            <span class="text-muted small">No asignado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small">
+                            {{ t.solicitante.email }}
+                        </div>
+                    </td>
+                    <td class="small">
+                        {{ t.fecha_creacion|date:"d-m-Y H:i" }}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'ticket_tecnico_detalle' t.id %}"
+                           class="btn btn-sm btn-outline-primary">
+                            Ver
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="9" class="text-center py-4 text-muted">
+                    No hay tickets para mostrar.
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+        </div>
+    </div>
+</div>
+{% endblock %}

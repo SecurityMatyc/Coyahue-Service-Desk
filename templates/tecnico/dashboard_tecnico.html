@@ -1,0 +1,114 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">Panel del Técnico</h1>
+            <p class="page-subtitle mb-0">
+                Bienvenido, {{ request.user.first_name }}. Aquí ves tus tickets asignados y su estado.
+            </p>
+        </div>
+        <div class="text-end small text-muted">
+            Perfil técnico:<br>
+            <strong>{{ tecnico.especialidad|default:"Generalista" }}</strong>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted text-uppercase small">Tickets asignados</span>
+                        <i class="fa-solid fa-ticket text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">
+                        {{ tickets_asignados|length }}
+                    </h3>
+                    <p class="small text-muted mb-0">
+                        Total de tickets actualmente bajo tu responsabilidad.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted text-uppercase small">Abiertos</span>
+                        <i class="fa-solid fa-circle text-warning"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">
+                        {{ tickets_abiertos }}
+                    </h3>
+                    <p class="small text-muted mb-0">
+                        Tickets aún sin iniciar o en espera.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted text-uppercase small">En progreso / resueltos</span>
+                        <i class="fa-solid fa-check-double text-success"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">
+                        {{ tickets_en_progreso }} / {{ tickets_resueltos }}
+                    </h3>
+                    <p class="small text-muted mb-0">
+                        Seguimiento de tu avance en la resolución de casos.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Lista de tickets -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h6 class="text-uppercase text-muted small mb-3">Tickets asignados</h6>
+
+            {% if tickets_asignados %}
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="small text-muted">
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Prioridad</th>
+                            <th>Creado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets_asignados %}
+                        <tr>
+                            <td>{{ t.id }}</td>
+                            <td>{{ t.titulo }}</td>
+                            <td>{{ t.categoria.nombre_categoria }}</td>
+                            <td>{{ t.estado.nombre_estado }}</td>
+                            <td>{{ t.prioridad.nombre_prioridad }}</td>
+                            <td>{{ t.fecha_creacion|date:"d-m-Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="small text-muted mb-0">
+                    No tienes tickets asignados por el momento.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

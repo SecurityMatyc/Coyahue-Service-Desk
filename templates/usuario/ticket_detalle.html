@@ -1,0 +1,192 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">
+                Ticket #{{ ticket.id }} · {{ ticket.titulo }}
+            </h1>
+            <p class="page-subtitle mb-0">
+                Consulta el estado y los detalles de tu solicitud.
+            </p>
+        </div>
+        <div class="text-end small">
+            <div>Estado actual:</div>
+            <span class="badge bg-info">
+                {{ ticket.estado.nombre_estado }}
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Descripción</h6>
+                    <p class="small mb-0">
+                        {{ ticket.descripcion }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- CALIFICACIÓN DE SATISFACCIÓN (solo si está cerrado) -->
+            {% if ticket.estado.es_final and not ya_califico %}
+                <div class="card shadow-sm border-0 border-warning mb-3">
+                    <div class="card-body bg-light">
+                        <h6 class="text-uppercase text-warning small mb-3">
+                            <i class="bi bi-star-fill"></i> Califica este servicio
+                        </h6>
+                        <p class="small mb-3">Tu ticket ha sido cerrado. Por favor, ayúdanos a mejorar calificando la atención recibida.</p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">¿Cómo calificas la atención?</label>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <input type="radio" class="btn-check" name="puntuacion" id="star1" value="1" required>
+                                    <label class="btn btn-outline-warning btn-sm" for="star1">⭐</label>
+                                    
+                                    <input type="radio" class="btn-check" name="puntuacion" id="star2" value="2">
+                                    <label class="btn btn-outline-warning btn-sm" for="star2">⭐⭐</label>
+                                    
+                                    <input type="radio" class="btn-check" name="puntuacion" id="star3" value="3">
+                                    <label class="btn btn-outline-warning btn-sm" for="star3">⭐⭐⭐</label>
+                                    
+                                    <input type="radio" class="btn-check" name="puntuacion" id="star4" value="4">
+                                    <label class="btn btn-outline-warning btn-sm" for="star4">⭐⭐⭐⭐</label>
+                                    
+                                    <input type="radio" class="btn-check" name="puntuacion" id="star5" value="5">
+                                    <label class="btn btn-outline-warning btn-sm" for="star5">⭐⭐⭐⭐⭐</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">¿Se resolvió tu problema?</label>
+                                <div class="d-flex gap-2">
+                                    <input type="radio" class="btn-check" name="resuelto" id="resuelto_si" value="si" required>
+                                    <label class="btn btn-outline-success btn-sm" for="resuelto_si">✅ Sí</label>
+                                    
+                                    <input type="radio" class="btn-check" name="resuelto" id="resuelto_no" value="no">
+                                    <label class="btn btn-outline-danger btn-sm" for="resuelto_no">❌ No</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="comentario_csat" class="form-label small fw-bold">Comentario adicional (opcional)</label>
+                                <textarea name="comentario_csat" id="comentario_csat" class="form-control form-control-sm" rows="2" placeholder="¿Algo que quieras agregar?"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning btn-sm w-100">
+                                <i class="bi bi-send-fill"></i> Enviar calificación
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% elif ticket.estado.es_final and ya_califico %}
+                <div class="alert alert-success alert-sm">
+                    <i class="bi bi-check-circle-fill"></i> Ya calificaste este ticket. ¡Gracias por tu opinión!
+                </div>
+            {% endif %}
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Comentarios</h6>
+
+                    {% if comentarios %}
+                        <div class="mb-3" style="max-height: 400px; overflow-y: auto;">
+                            {% for comentario in comentarios %}
+                                <div class="card mb-2 {% if comentario.usuario == ticket.solicitante %}border-primary{% else %}border-secondary{% endif %}">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <strong class="small">{{ comentario.usuario.get_full_name|default:comentario.usuario.email }}</strong>
+                                            <span class="badge {% if comentario.usuario == ticket.solicitante %}bg-primary{% else %}bg-secondary{% endif %} badge-sm">
+                                                {{ comentario.usuario.rol.nombre_rol }}
+                                            </span>
+                                        </div>
+                                        <p class="small mb-1">{{ comentario.texto }}</p>
+                                        {% if comentario.archivo %}
+                                            <p class="small mb-1">
+                                                <i class="bi bi-paperclip"></i>
+                                                <a href="{{ comentario.archivo.url }}" target="_blank">Ver adjunto</a>
+                                            </p>
+                                        {% endif %}
+                                        <small class="text-muted">{{ comentario.fecha_creacion|date:"d-m-Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="small text-muted">Aún no hay comentarios en este ticket.</p>
+                    {% endif %}
+
+                    <!-- Formulario para agregar comentario (solo si ticket NO está cerrado) -->
+                    {% if not ticket.estado.es_final %}
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label for="comentario_texto" class="form-label small"><strong>Agregar comentario:</strong></label>
+                                <textarea name="comentario_texto" id="comentario_texto" class="form-control form-control-sm" rows="3" placeholder="Escribe tu comentario aquí..." required></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label for="comentario_archivo" class="form-label small">Adjuntar archivo (opcional):</label>
+                                <input type="file" name="comentario_archivo" id="comentario_archivo" class="form-control form-control-sm">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-chat-left-text"></i> Enviar comentario
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info alert-sm mb-0">
+                            <i class="bi bi-lock-fill"></i> Este ticket está cerrado. No puedes agregar más comentarios.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Información general</h6>
+                    <p class="small mb-1">
+                        <strong>Categoría:</strong><br>
+                        {{ ticket.categoria.nombre_categoria }}
+                    </p>
+                    <p class="small mb-1">
+                        <strong>Prioridad:</strong><br>
+                        {{ ticket.prioridad.nombre_prioridad }}
+                    </p>
+                    <p class="small mb-1">
+                        <strong>Fecha creación:</strong><br>
+                        {{ ticket.fecha_creacion|date:"d-m-Y H:i" }}
+                    </p>
+                    <p class="small mb-0">
+                        <strong>Solicitante:</strong><br>
+                        {{ ticket.solicitante.email }}
+                    </p>
+
+                    {% if ticket.archivo %}
+    <p class="small mb-1">
+        <strong>Adjunto:</strong><br>
+        <a href="{{ ticket.archivo.url }}" target="_blank">
+            Descargar archivo
+        </a>
+</p>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <a href="{% url 'tickets_usuario_listar' %}" class="btn btn-outline-secondary btn-sm w-100">
+                Volver a mis tickets
+            </a>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

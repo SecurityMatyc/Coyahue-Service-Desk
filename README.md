@@ -1,2 +1,2 @@
 # Sistema para la empresa Coyahue
-Evaluacion final de Proyecto Integrado
+Evaluacion de proyecto integrado

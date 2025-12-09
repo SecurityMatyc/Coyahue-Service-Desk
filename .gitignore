@@ -24,7 +24,6 @@ pyvenv.cfg
 *.pyc
 # db.sqlite3  # Comentado para compartir BD con usuarios de prueba
 # db.sqlite3-journal
-/media
 # /staticfiles  # Solo archivos generados por collectstatic
 local_settings.py
 

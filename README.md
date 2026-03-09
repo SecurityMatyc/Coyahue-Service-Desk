@@ -37,16 +37,21 @@ Además de la parte de gestión, el proyecto incorpora una interfaz web responsi
 ## ✨ Características principales
 
 - Flujo de tickets enfocado en soporte TI empresarial.
+- Gestión de SLA por prioridad (`sla_horas`) con estados: `EN_CURSO`, `ADVERTENCIA`, `VENCIDO`, `CUMPLIDO`.
 - Control de permisos por tipo de usuario.
+- Historial de cambios por ticket (estado anterior y nuevo).
+- Comentarios bidireccionales con archivos adjuntos.
+- Calificación de satisfacción (CSAT) por ticket cerrado.
 - Gestión administrativa completa de entidades del sistema.
-- Módulo de notificaciones para eventos relevantes.
-- Reportes con vistas de seguimiento.
+- Módulo de notificaciones y eventos críticos.
+- Reportes en dashboard, exportación Excel y PDF.
+- Base de conocimiento con FAQ, votación útil/no útil y archivos (imagen/PDF).
 - Integración de API con Django REST Framework y JWT.
 
 ## 🛠️ Stack tecnológico
 
 - Python 3.13
-- Django 5.2.8
+- Django 6.0
 - Django REST Framework
 - Simple JWT
 - HTML, CSS, JavaScript
@@ -84,14 +89,20 @@ python manage.py runserver
 
 Abrir en navegador:
 
-- `http://127.0.0.1:8000/`
+- `http://127.0.0.1:8000/` (pantalla de inicio de sesión)
 - `http://127.0.0.1:8000/admin/`
-- `http://127.0.0.1:8000/login/`
+
+API JWT (opcional):
+
+- `POST http://127.0.0.1:8000/api/auth/login/`
+- `POST http://127.0.0.1:8000/api/auth/refresh/`
 
 ## ☁️ Despliegue
 
 El proyecto **sí fue desplegado en AWS** durante su etapa académica y presentado como parte de la entrega a una empresa real.  
 Para facilitar su ejecución en repositorio y revisión de portafolio, esta versión se deja funcional con **SQLite** en entorno local.
+
+Nota técnica: en el historial del proyecto se trabajó con PostgreSQL; en esta versión del repositorio se mantiene SQLite para ejecutar local sin dependencias externas.
 
 ## 🎯 Contexto académico
 

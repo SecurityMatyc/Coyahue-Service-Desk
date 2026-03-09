@@ -102,12 +102,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "coyahue_db",
-        "USER": "coyahue_user",
-        "PASSWORD": "Coyahue2025!",
-        "HOST": "172.31.76.223",
-        "PORT": "5432",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
